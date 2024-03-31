@@ -4,7 +4,7 @@ import concurrent.futures
 import os
 import re
 import sys
-from logging import DEBUG
+from logging import INFO, DEBUG
 from typing import Union, Optional, Dict, List
 from urllib.parse import urlparse
 
@@ -67,6 +67,19 @@ def seconds_2_hhmmss_str(seconds: PositiveInt) -> str:
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
     return f"{hours:02}:{minutes:02}:{seconds:02}"
+
+
+def pad_timestamp(timestamp: str) -> str:
+    """
+    Add 0s to the timestamp to make it valid for the model
+    """
+    match timestamp.count(':'):
+        case 1:
+            minutes, seconds = timestamp.split(':')
+            return f"00:{minutes:02}:{seconds:02}"
+        case 2:
+            hours, minutes, seconds = timestamp.split(':')
+            return f"{hours:02}:{minutes:02}:{seconds:02}"
 
 
 def get_podcast_chapters(chapters: Chapters) -> Optional[Chapters]:
@@ -150,7 +163,8 @@ def parse_sponsors(page_url: AnyHttpUrl, episode_number: int, show: str, show_de
 def build_episode_file(item: Item, show: str, show_details: ShowDetails):
     logger.debug(item.podcastPersons)
     try:
-        episode_number = int(item.title.split(":")[0])
+        # episode_number = int(item.title.split(":")[0])
+        episode_number = int(re.search(r"\d+", item.title.split(":")[0]).group())
         episode_number_padded = f"{episode_number:04}"
     except:
         episode_number = item.title.split(":")[0]
@@ -195,7 +209,7 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails):
         guests=list(map(get_canonical_username,
                         list(filter(lambda person: person.role.lower() == 'guest', item.podcastPersons)))),
         sponsors=sponsors,
-        podcast_duration=item.itunesDuration if ':' in item.itunesDuration else seconds_2_hhmmss_str(
+        podcast_duration=pad_timestamp(item.itunesDuration) if ':' in item.itunesDuration else seconds_2_hhmmss_str(
             int(item.itunesDuration)),
         podcast_file=item.enclosure.url,
         podcast_bytes=item.enclosure.length,
