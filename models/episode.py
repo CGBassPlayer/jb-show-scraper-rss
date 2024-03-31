@@ -1,17 +1,16 @@
-from datetime import time
 import json
-from textwrap import indent
+from datetime import time
 from typing import List, Literal, Optional
-from uuid import UUID
-from pydantic import BaseModel, AnyHttpUrl, HttpUrl, NonNegativeInt, PositiveInt, constr, model_validator, field_validator, ValidationInfo
+
+from pydantic import BaseModel, AnyHttpUrl, HttpUrl, NonNegativeInt, PositiveInt, constr, model_validator, \
+    field_validator, ValidationInfo, Extra
 from pydantic.dataclasses import dataclass as py_dataclass
+
 from models.podcast import Value
-
-
 
 # FIXME: make this a class variable under Episode
 # https://github.com/samuelcolvin/pydantic/issues/184#issuecomment-392566460
-VALID_YOUTUBE_HOSTNAMES = {"youtube.com", "www.youtube.com", "youtu.be",  "www.youtu.be"}
+
 
 #########################
 ## Podcasting namespace chapters
@@ -24,6 +23,7 @@ class Location:
     """
     Open Street maps link
     """
+
 
 @py_dataclass
 class Chapter:
@@ -47,15 +47,17 @@ class Chapter:
         if v == '':
             return None
 
+
 # for example:
 # https://feeds.fireside.fm/selfhosted/json/episodes/a9a4f084-47ba-490c-a65b-cef65719182d/chapters
-class Chapters(BaseModel):
+class Chapters(BaseModel, extra=Extra.allow):
     """
     Used to parse the Fireside chapters api endpoint:
     https://feeds.fireside.fm/{show}/json/episodes/{ep_uuid}/chapters
     """
     # semantic versioning regex: https://ihateregex.io/expr/semver/
-    version: str = constr(pattern=r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
+    version: str = constr(
+        pattern=r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
     chapters: List[Chapter]
     author: Optional[str] = None
     title: Optional[str] = None
@@ -63,9 +65,12 @@ class Chapters(BaseModel):
     description: Optional[str] = None
     fileName: Optional[str] = None
     waypoints: Optional[bool] = None
+
+
 #########################
 
-class Episode(BaseModel):
+class Episode(BaseModel, extra=Extra.allow):
+    _VALID_YOUTUBE_HOSTNAMES: dict[str] = {"youtube.com", "www.youtube.com", "youtu.be", "www.youtu.be"}
 
     # Hardcoded
     type: Literal["episode"] = "episode"
@@ -249,7 +254,7 @@ class Episode(BaseModel):
     @field_validator('youtube_link')
     def check_youtube_link(cls, v):
         if v:
-            assert v.host in VALID_YOUTUBE_HOSTNAMES, f"host of the url must be one of {VALID_YOUTUBE_HOSTNAMES}, instead got {v.host}"
+            assert v.host in cls.VALID_YOUTUBE_HOSTNAMES, f"host of the url must be one of {cls.VALID_YOUTUBE_HOSTNAMES}, instead got {v.host}"
         return v
 
     # @validator('podcast_file', 'podcast_alt_file', 'podcast_ogg_file', 'video_file', 'video_hd_file', 'video_mobile_file', pre=True)
@@ -268,11 +273,11 @@ class Episode(BaseModel):
         if v.startswith("www.podtrac.com/pts/redirect"):
             v = v.removeprefix("www.podtrac.com/pts/redirect")
             # Remove the file ext part before with the first slash, e.g. ".mp3/" or ".ogg/"
-            v = v[v.find("/")+1:]
+            v = v[v.find("/") + 1:]
 
         if v.startswith("chtbl.com/track/"):
             v = v.removeprefix("chtbl.com/track/")
-            v = v[v.find("/")+1:]  # remove the tracking + first slash ID e.g. "392D9/"
+            v = v[v.find("/") + 1:]  # remove the tracking + first slash ID e.g. "392D9/"
 
         # Add back scheme
         v = f"{scheme}{v}"
@@ -284,8 +289,6 @@ class Episode(BaseModel):
         v = v.removeprefix("http://")
         v = v.removeprefix("https://")
         return v
-
-
 
     def get_hugo_md_file_content(self) -> str:
         """Constructs and returns the content of the Hugo markdown file.

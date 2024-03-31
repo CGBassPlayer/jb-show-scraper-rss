@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from models.config import ScraperBaseModel
 
 
-class Sponsor(BaseModel):
+class Sponsor(ScraperBaseModel):
     shortname: str
     title: str
     description: str

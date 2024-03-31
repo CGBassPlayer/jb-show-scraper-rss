@@ -2,24 +2,25 @@
 
 import concurrent.futures
 import os
-import sys
 import re
-from logging import DEBUG, INFO
+import sys
+from logging import DEBUG
+from typing import Union, Optional, Dict, List
 from urllib.parse import urlparse
+
 import requests
 import yaml
 from bs4 import BeautifulSoup, NavigableString
-from typing import Union, Optional, Dict, List
-from pydantic import AnyHttpUrl, PositiveInt
 from frontmatter import Post, dumps
 from html2text import html2text
 from loguru import logger
+from pydantic import AnyHttpUrl, PositiveInt
 
 from models import Rss
 from models.config import ConfigData, ShowDetails
+from models.episode import Chapters
 from models.episode import Episode
 from models.item import Item
-from models.episode import Chapters
 from models.podcast import Person
 from models.sponsor import Sponsor
 
@@ -39,7 +40,6 @@ DATA_ROOT_DIR = os.getenv("DATA_DIR", "./data")
 # This data is saved to files files after the episode files have been created.
 SPONSORS: Dict[str, Sponsor] = {}  # JSON filename as key (e.g. "linode.com-lup.json")
 
-
 # Regex to strip Episode Numbers and information after the |
 # https://regex101.com/r/gkUzld/
 SHOW_TITLE_REGEX = re.compile(r"^(?:(?:Episode)?\s?[0-9]+:+\s+)?(.+?)(?:(\s+\|+.*)|\s+)?$")
@@ -47,11 +47,13 @@ SHOW_TITLE_REGEX = re.compile(r"^(?:(?:Episode)?\s?[0-9]+:+\s+)?(.+?)(?:(\s+\|+.
 global config
 config = None
 
+
 def makedirs_safe(directory):
     try:
         os.makedirs(directory)
     except FileExistsError:
         pass
+
 
 def get_plain_title(title: str) -> str:
     """
@@ -59,11 +61,13 @@ def get_plain_title(title: str) -> str:
     """
     return SHOW_TITLE_REGEX.match(title)[1]
 
+
 def seconds_2_hhmmss_str(seconds: PositiveInt) -> str:
     seconds = seconds
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
     return f"{hours:02}:{minutes:02}:{seconds:02}"
+
 
 def get_podcast_chapters(chapters: Chapters) -> Optional[Chapters]:
     try:
@@ -83,6 +87,7 @@ def get_podcast_chapters(chapters: Chapters) -> Optional[Chapters]:
     except AttributeError:
         return None
 
+
 def get_canonical_username(username: Person) -> str:
     """
     Get the last path part of the url which is the username for the hosts and guests.
@@ -91,10 +96,12 @@ def get_canonical_username(username: Person) -> str:
     usernames_map = config.get("usernames_map")
 
     # Replace username if found in usernames_map or default to input username
-    return next(filter(str.__instancecheck__,(key for key, list in usernames_map.items() if username.name in list)), username.name)
+    return next(filter(str.__instancecheck__, (key for key, list in usernames_map.items() if username.name in list)),
+                username.name)
+
 
 def parse_sponsors(page_url: AnyHttpUrl, episode_number: int, show: str, show_details: ShowDetails) -> List[str]:
-    response = requests.get(page_url,)
+    response = requests.get(page_url, )
     page_soup = BeautifulSoup(response.text, features="html.parser")
 
     # Get Sponsors
@@ -119,7 +126,8 @@ def parse_sponsors(page_url: AnyHttpUrl, episode_number: int, show: str, show_de
 
             filename = f"{shortname}.md"
 
-            description = " ".join([sponsor_link.find_next('strong').text, sponsor_link.find_next('strong').next_sibling.text])
+            description = " ".join(
+                [sponsor_link.find_next('strong').text, sponsor_link.find_next('strong').next_sibling.text])
 
             if sponsor_link and not SPONSORS.get(filename):
                 SPONSORS.update({
@@ -137,6 +145,7 @@ def parse_sponsors(page_url: AnyHttpUrl, episode_number: int, show: str, show_de
             pass
 
     return sponsors
+
 
 def build_episode_file(item: Item, show: str, show_details: ShowDetails):
     logger.debug(item.podcastPersons)
@@ -161,7 +170,7 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails):
 
     # Parse up to first strong to build a summary description
     description_soup = BeautifulSoup(item.description, features="html.parser")
-    description_p1  = description_soup.find(string=re.compile(r'.*|(strong)')).text
+    description_p1 = description_soup.find(string=re.compile(r'.*|(strong)')).text
     description = description_p1
     try:
         description_p2 = description_soup.find('strong').previous.previous.previous.text
@@ -172,35 +181,39 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails):
         pass
 
     episode = Episode(
-                show_slug=show,
-                show_name=show_details.name,
-                episode=episode_number,
-                episode_padded=episode_number_padded,
-                episode_guid=episode_guid,
-                title=get_plain_title(item.title),
-                description=description,
-                date=item.pubDate,
-                tags=[],
-                hosts=list(map(get_canonical_username, list(filter(lambda person: person.role.lower() == 'host', item.podcastPersons)))),
-                guests=list(map(get_canonical_username, list(filter(lambda person: person.role.lower() == 'guest', item.podcastPersons)))),
-                sponsors=sponsors,
-                podcast_duration=item.itunesDuration if ':' in item.itunesDuration else seconds_2_hhmmss_str(int(item.itunesDuration)),
-                podcast_file=item.enclosure.url,
-                podcast_bytes=item.enclosure.length,
-                podcast_chapters=get_podcast_chapters(item.podcastChapters),
-                podcast_alt_file=None,
-                podcast_ogg_file=None,
-                video_file=None,
-                video_hd_file=None,
-                video_mobile_file=None,
-                youtube_link=None,
-                jb_url=f'{show_details.jb_url}/{episode_number}',
-                fireside_url=item.link,
-                value=item.podcastValue,
-                episode_links=html2text(item.description)
-            )
+        show_slug=show,
+        show_name=show_details.name,
+        episode=episode_number,
+        episode_padded=episode_number_padded,
+        episode_guid=episode_guid,
+        title=get_plain_title(item.title),
+        description=description,
+        date=item.pubDate,
+        tags=[],
+        hosts=list(map(get_canonical_username,
+                       list(filter(lambda person: person.role.lower() == 'host', item.podcastPersons)))),
+        guests=list(map(get_canonical_username,
+                        list(filter(lambda person: person.role.lower() == 'guest', item.podcastPersons)))),
+        sponsors=sponsors,
+        podcast_duration=item.itunesDuration if ':' in item.itunesDuration else seconds_2_hhmmss_str(
+            int(item.itunesDuration)),
+        podcast_file=item.enclosure.url,
+        podcast_bytes=item.enclosure.length,
+        podcast_chapters=get_podcast_chapters(item.podcastChapters),
+        podcast_alt_file=None,
+        podcast_ogg_file=None,
+        video_file=None,
+        video_hd_file=None,
+        video_mobile_file=None,
+        youtube_link=None,
+        jb_url=f'{show_details.jb_url}/{episode_number}',
+        fireside_url=item.link,
+        value=item.podcastValue,
+        episode_links=html2text(item.description)
+    )
 
     save_file(output_file, episode.get_hugo_md_file_content(), overwrite=IS_LATEST_ONLY)
+
 
 def save_sponsors(executor):
     logger.info(">>> Saving the sponsors found in episodes...")
@@ -209,12 +222,13 @@ def save_sponsors(executor):
     for filename, sponsor in SPONSORS.items():
         futures.append(executor.submit(
             save_post_obj_file,
-            filename, Post('',**sponsor.model_dump()), sponsors_dir, overwrite=True))
+            filename, Post('', **sponsor.model_dump()), sponsors_dir, overwrite=True))
 
     # Drain all threads
     for future in concurrent.futures.as_completed(futures):
         future.result()
     logger.info(">>> Finished saving sponsors")
+
 
 def save_post_obj_file(filename: str, post_obj: Post, dest_dir: str, overwrite: bool = False) -> None:
     data_dont_override = set(config.get("data_dont_override"))
@@ -224,7 +238,8 @@ def save_post_obj_file(filename: str, post_obj: Post, dest_dir: str, overwrite: 
     file_path = os.path.join(dest_dir, filename)
     save_file(file_path, dumps(post_obj), overwrite=overwrite)
 
-def save_file(file_path: str, content: Union[bytes,str], mode: str = "w", overwrite: bool = False) -> bool:
+
+def save_file(file_path: str, content: Union[bytes, str], mode: str = "w", overwrite: bool = False) -> bool:
     if not overwrite and os.path.exists(file_path):
         logger.warning(f"Skipping saving `{file_path}` as it already exists")
         return False
@@ -235,12 +250,12 @@ def save_file(file_path: str, content: Union[bytes,str], mode: str = "w", overwr
     logger.info(f"Saved file: {file_path}")
     return True
 
+
 def main():
     global config
     with open("config.yml") as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
         validated_config = ConfigData(shows=config['shows'], usernames_map=config['usernames_map'])
-
 
     for show, show_config in validated_config.shows.items():
         response = requests.get(show_config.show_rss)

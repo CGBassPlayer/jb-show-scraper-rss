@@ -1,6 +1,9 @@
-from pydantic_xml import BaseXmlModel, attr, element, wrapped
-from pydantic import EmailStr, PositiveInt, AnyHttpUrl
 from typing import Optional, Literal
+
+from pydantic import EmailStr, PositiveInt, AnyHttpUrl, Extra
+from pydantic_xml import attr, element, wrapped
+
+from models.config import ScraperBaseXmlModel
 
 NSMAP = {
     'itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd',
@@ -21,20 +24,26 @@ EPISODE_TYPES = Literal[
 
 Title: str = element(tag='title', default=None, ns='itunes', nsmap=NSMAP)
 
-class ItunesImage(BaseXmlModel, tag='image', ns='itunes', nsmap=NSMAP):
+
+class ItunesImage(ScraperBaseXmlModel, tag='image', ns='itunes', nsmap=NSMAP):
     href: Optional[AnyHttpUrl] = attr(default=None)
+
 
 Author: str = element(tag='author', default=None, ns='itunes', nsmap=NSMAP)
 
-class Owner(BaseXmlModel, tag='owner', ns='itunes', nsmap=NSMAP):
+
+class Owner(ScraperBaseXmlModel, tag='owner', ns='itunes', nsmap=NSMAP):
     name: Optional[str] = wrapped('name', default=None)
     email: Optional[EmailStr] = wrapped('email', default=None)
 
+
 Explicit: bool = element(tag='explicit', default=None, ns='itunes', nsmap=NSMAP)
 
-class Category(BaseXmlModel, tag='category', ns='itunes', nsmap=NSMAP):
+
+class Category(ScraperBaseXmlModel, tag='category', ns='itunes', nsmap=NSMAP):
     text: str = attr()
-    category: Optional[str] = wrapped('category',attr(name='text',default=None),default=None)
+    category: Optional[str] = wrapped('category', attr(name='text', default=None), default=None)
+
 
 Type: Optional[TYPE_VALUES] = element(tag='type', default=None, ns='itunes', nsmap=NSMAP)
 

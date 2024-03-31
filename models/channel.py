@@ -1,22 +1,28 @@
-from pydantic_xml import BaseXmlModel, attr, element
-from typing import Tuple, Optional
-from models.podcast import Funding, Location, Podping, Trailer, UpdateFrequency, Value, Podroll, Images, Medium, Locked, Guid, Person
-from models.itunes import Category, Title, ItunesImage, Author, Owner, Explicit, Type
-from models.item import Item
-from pydantic import EmailStr, field_validator
 from datetime import datetime
+from typing import Tuple, Optional
+
+from pydantic import EmailStr, field_validator, Extra
+from pydantic_xml import attr, element
+
+from models.item import Item
+from models.itunes import Category, Title, ItunesImage, Author, Owner, Explicit, Type
+from models.podcast import Funding, Location, Podping, Trailer, UpdateFrequency, Value, Podroll, Images, Medium, Locked, \
+    Guid, Person
+from models.config import ScraperBaseXmlModel
 
 ns = {
     'atom': 'http://www.w3.org/2005/Atom'
 }
 
-class AtomLink(BaseXmlModel, tag='link', ns='atom', nsmap=ns):
+
+class AtomLink(ScraperBaseXmlModel, tag='link', ns='atom', nsmap=ns):
     rel: Optional[str] = attr(default=None)
     href: str = attr()
     type: Optional[str] = attr(default=None)
     title: Optional[str] = attr(default=None)
 
-class Image(BaseXmlModel, tag='image'):
+
+class Image(ScraperBaseXmlModel, tag='image'):
     url: str = element(tag='url')
     title: str = element(tag='title')
     link: str = element(tag='link')
@@ -24,7 +30,8 @@ class Image(BaseXmlModel, tag='image'):
     height: Optional[int] = element(tag='height', default=None)
     width: Optional[int] = element(tag='width', default=None)
 
-class Channel(BaseXmlModel, tag='channel', search_mode='unordered'):
+
+class Channel(ScraperBaseXmlModel, tag='channel', search_mode='unordered'):
     atomLinks: Optional[Tuple[AtomLink, ...]] = element(tag='link', ns='atom', nsmap=ns, default=None)
     podcastPodping: Optional[Podping] = None
     podcastValue: Optional[Value] = None
@@ -41,8 +48,8 @@ class Channel(BaseXmlModel, tag='channel', search_mode='unordered'):
     podcastLocation: Optional[Location] = None
     podcastLocked: Optional[Locked] = None
     podcastGuid: Optional[str] = Guid
-    podcastPersons: Optional[Tuple[Person,...]] = Person
-    podcastTrailer: Optional[Tuple[Trailer,...]] = Trailer
+    podcastPersons: Optional[Tuple[Person, ...]] = Person
+    podcastTrailer: Optional[Tuple[Trailer, ...]] = Trailer
     generator: Optional[str] = element(default=None)
     managingEditor: Optional[EmailStr] = element(default=None)
     lastBuildDate: Optional[str] = element(default=None)
@@ -58,9 +65,10 @@ class Channel(BaseXmlModel, tag='channel', search_mode='unordered'):
     items: Tuple[Item, ...] = element(tag='item')
 
     @field_validator('pubDate', mode='before')
-    def pubDate_validator(cls, value: str) -> str:
+    def pub_date_validator(cls, value: str) -> str:
         return datetime.strptime(value, '%a, %d %b %Y %H:%M:%S %z').isoformat()
 
     class Config:
-        extra = 'forbid'
+        ...
+        # extra = 'forbid'
         # extra = 'ignore'
