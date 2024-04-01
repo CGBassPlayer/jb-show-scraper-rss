@@ -286,8 +286,6 @@ def main():
                     show,
                     show_config))
 
-            futures.append
-
             # Drain all threads
             for future in concurrent.futures.as_completed(futures):
                 future.result()

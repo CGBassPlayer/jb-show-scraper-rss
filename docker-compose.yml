@@ -2,10 +2,11 @@ version: '3'
 services:
   scraper:
     image: jb-scraper
-    container_name: jb-scraper-podhome
+    container_name: jb-show-scraper-rss
     environment:
-      # - LATEST_ONLY=true
+      - LATEST_ONLY=true
       # - LOG_LVL=10
+      - EXTRA_FIELDS=ignore
       - DATA_DIR=/data
     build:
       context: .

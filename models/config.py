@@ -1,3 +1,4 @@
+import os
 from typing import Dict, Set
 
 from pydantic import BaseModel, HttpUrl, ConfigDict
@@ -5,11 +6,11 @@ from pydantic_xml import BaseXmlModel
 
 
 class ScraperBaseModel(BaseModel):
-    model_config: dict = ConfigDict(extra='ignore')
+    model_config: dict = ConfigDict(extra=os.getenv('EXTRA_FIELDS') or 'ignore')
 
 
 class ScraperBaseXmlModel(BaseXmlModel):
-    model_config: dict = ConfigDict(extra='ignore')
+    model_config: dict = ConfigDict(extra=os.getenv('EXTRA_FIELDS') or 'ignore')
 
 
 class ShowDetails(ScraperBaseModel):
