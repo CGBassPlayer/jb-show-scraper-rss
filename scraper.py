@@ -113,12 +113,12 @@ def get_canonical_username(username: Person) -> str:
                 username.name)
 
 
-def parse_sponsors(page_url: AnyHttpUrl, episode_number: int, show: str, show_details: ShowDetails) -> List[str]:
-    response = requests.get(page_url, )
-    page_soup = BeautifulSoup(response.text, features="html.parser")
+def parse_sponsors(episode_description, episode_number: int, show: str, show_details: ShowDetails) -> List[str]:
+    page_soup = BeautifulSoup(episode_description, features="html.parser")
 
     # Get Sponsors
-    sponsor_tags = page_soup.find_all('strong', string='Sponsor:')
+    sponsor_tags = page_soup.find_all('strong', string='Sponsored By:')
+    sponsor_tags += page_soup.find_all('strong', string='Sponsor:')
 
     if not sponsor_tags:
         logger.warning(f"No sponsors found for this episode. # Show: {show} Ep: {episode_number}")
@@ -179,8 +179,7 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails):
         logger.warning(f"Skipping saving `{output_file}` as it already exists")
         return
 
-    # sponsors = parse_sponsors(item.link, episode_number, show, show_details)
-    sponsors = []
+    sponsors = parse_sponsors(item.description, episode_number, show, show_details)
 
     # Parse up to first strong to build a summary description
     description_soup = BeautifulSoup(item.description, features="html.parser")
@@ -253,7 +252,7 @@ def save_post_obj_file(filename: str, post_obj: Post, dest_dir: str, overwrite: 
     save_file(file_path, dumps(post_obj), overwrite=overwrite)
 
 
-def save_file(file_path: str, content: Union[bytes, str], mode: str = "w", overwrite: bool = False) -> bool:
+def save_file(file_path: str, content: Union[bytes,str], mode: str = "w", overwrite: bool = False) -> bool:
     if not overwrite and os.path.exists(file_path):
         logger.warning(f"Skipping saving `{file_path}` as it already exists")
         return False
