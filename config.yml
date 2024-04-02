@@ -5,12 +5,12 @@ shows:
     jb_url: https://www.jupiterbroadcasting.com/show/this-week-in-bitcoin
     acronym: twib
     name: This Week In Bitcoin
-  linux-unplugged:
-    show_rss: https://feeds.jupiterbroadcasting.com/lup
-    show_url: https:/linux-unplugged.show
-    jb_url:  https://www.jupiterbroadcasting.com/show/linux-unplugged
-    acronym: lup
-    name: Linux Unplugged
+#  linux-unplugged:
+#    show_rss: https://feeds.jupiterbroadcasting.com/lup
+#    show_url: https:/linux-unplugged.show
+#    jb_url:  https://www.jupiterbroadcasting.com/show/linux-unplugged
+#    acronym: lup
+#    name: Linux Unplugged
 
 # Map usernames of hosts/guests as they appear in Fireside to how we want to
 # save them in the new website. This also helps to avoid duplicates
@@ -20,10 +20,13 @@ usernames_map:
     - Chris Fisher
   wes:
     - wespayne
+    - Wes Payne
   alex:
     - alexktz
+    - Alex Kretzschmar
   brent:
     - brentgervais
+    - Brent Gervais
   michael:
     - mike
   danielle-fore:
@@ -33,6 +36,12 @@ usernames_map:
     - drewdevore
     - drewdvore
     - drewofdoom
+    - Drew DeVore
+  joe:
+    - joeress
+    - Joe Ressington
+  allanjude:
+    - Allen Jude
   jill-linuxgirl:
     - jilllinuxgirl
   jim-salter:
