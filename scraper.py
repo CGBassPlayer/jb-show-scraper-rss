@@ -116,7 +116,7 @@ def get_canonical_username(username: Person) -> str:
 def parse_sponsors(episode_description, episode_number: int, show: str, show_details: ShowDetails) -> List[str]:
     page_soup = BeautifulSoup(episode_description, features="html.parser")
 
-    # Get Sponsors
+    # Get Sponsors description tag
     sponsor_tags = page_soup.find_all('strong', string='Sponsored By:')
     sponsor_tags += page_soup.find_all('strong', string='Sponsor:')
 
