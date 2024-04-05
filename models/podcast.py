@@ -206,7 +206,7 @@ class RemoteItem(ScraperBaseXmlModel, tag='remoteItem', ns='podcast', nsmap=NSMA
 class Timesplit(ScraperBaseXmlModel, tag='valueTimeSplit', ns='podcast', nsmap=NSMAP):
     startTime: PositiveInt = attr()
     duration: PositiveInt = attr()
-    remotePercentage: int = attr()
+    remotePercentage: int = attr(default=0)
     remoteStartTime: Optional[PositiveInt] = attr(default=None)
     remoteItem: Optional[RemoteItem] = element(tag='remoteItem', ns='podcast', nsmap=NSMAP)
     recipients: Optional[Tuple[Recipient, ...]] = element(tag='valueRecipient', ns='podcast', nsmap=NSMAP, default=())
@@ -220,11 +220,13 @@ class Value(ScraperBaseXmlModel, tag='value', ns='podcast', nsmap=NSMAP):
     recipients: Tuple[Recipient, ...] = element(tag='valueRecipient', ns='podcast', nsmap=NSMAP)
     timesplits: Optional[Tuple[Timesplit, ...]] = element(tag='valueTimeSplit', ns='podcast', nsmap=NSMAP, default=())
 
-class RemoteItem(ScraperBaseXmlModel, tag='remoteITem', ns='podcast', nsmap=NSMAP):
+
+class RemoteItem(ScraperBaseXmlModel, tag='remoteItem', ns='podcast', nsmap=NSMAP):
     feedGuid: str = attr()
     feedUrl: Optional[str] = attr(default=None)
     itemGuid: Optional[str] = attr(default=None)
     medium: Optional[MEDIUM_VALUES] = attr(default='podcast')
+
 
 class Images(ScraperBaseXmlModel, tag='images', ns='podcast', nsmap=NSMAP):
     srcset: str = attr(default=None)
