@@ -182,7 +182,8 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails):
     sponsors = parse_sponsors(item.description, episode_number, show, show_details)
 
     # Parse up to first strong to build a summary description
-    description_soup = BeautifulSoup(item.description, features="html.parser")
+    item_description_stripped = re.split(r"(Links:|Show Notes:)", item.description)[2]
+    description_soup = BeautifulSoup(item_description_stripped, features="html.parser")
 
     # TODO: take out unneeded strong text ('Links:', 'Show Notes:', 'Sponsors:', etc..
     soup_links = description_soup.find_all(["strong", "ul"])
