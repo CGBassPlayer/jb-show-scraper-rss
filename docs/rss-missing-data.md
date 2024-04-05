@@ -5,7 +5,5 @@
 - [ ] People
   - [ ] Generate person file
   - [ ] Fix person name generation
-- [ ] Episode Links
-  - [ ] Trim the Sponsors and short description from the file body
-
-Probably more...
+- [x] Episode Links
+  - [x] Trim the Sponsors and short description from the file body
