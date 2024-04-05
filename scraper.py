@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup, NavigableString
 from frontmatter import Post, dumps
 from html2text import html2text
 from loguru import logger
-from pydantic import AnyHttpUrl, PositiveInt
+from pydantic import PositiveInt
 
 from models import Rss
 from models.config import ConfigData, ShowDetails
@@ -183,6 +183,11 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails):
 
     # Parse up to first strong to build a summary description
     description_soup = BeautifulSoup(item.description, features="html.parser")
+
+    # TODO: take out unneeded strong text ('Links:', 'Show Notes:', 'Sponsors:', etc..
+    soup_links = description_soup.find_all(["strong", "ul"])
+    episode_links = "".join([str(i) for i in soup_links])
+
     description_p1 = description_soup.find(string=re.compile(r'.*|(strong)')).text
     description = description_p1
     try:
@@ -222,7 +227,7 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails):
         jb_url=f'{show_details.jb_url}/{episode_number}',
         fireside_url=item.link,
         value=item.podcastValue,
-        episode_links=html2text(item.description)
+        episode_links=html2text(episode_links)
     )
 
     save_file(output_file, episode.get_hugo_md_file_content(), overwrite=IS_LATEST_ONLY)
