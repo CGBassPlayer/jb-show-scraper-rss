@@ -186,6 +186,11 @@ class Episode(BaseModel):
     #   "/42"
     fireside_url: Optional[str]
 
+    # Url to the VTT version of the episode transcripts
+    # Example:
+    #   https://feeds.jupiterbroadcasting.com/transcripts/lup/08a0780e-c979-41e1-bdd1-016fca89a405.vtt
+    transcript_url: Optional[HttpUrl]
+
     value: Optional[Value]
 
     # Markdown list with links and some descriptions

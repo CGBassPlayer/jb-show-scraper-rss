@@ -182,6 +182,13 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails) -> None
 
     episode_links = get_links(item.content_encoded if item.content_encoded else item.description)
 
+    transcript_url = None
+
+    if item.podcast_transcripts:
+      for entry in item.podcast_transcripts:
+        if entry.type == "text/vtt":
+          transcript_url = entry.url
+
     # 🩹 for the launch phone number
     if show == 'the-launch':
         if episode_links[0:4] == '****':
@@ -215,7 +222,8 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails) -> None
                 jb_url=f'{show_details.jb_url}/{episode_number}',
                 fireside_url=item.link,
                 value=item.podcast_value,
-                episode_links=episode_links
+                episode_links=episode_links,
+                transcript_url=transcript_url
             )
 
     # 🩹 for twib feed not supporting podcast:person
