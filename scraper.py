@@ -215,7 +215,8 @@ def build_episode_file(item: Item, show: str, show_details: ShowDetails) -> None
                 jb_url=f'{show_details.jb_url}/{episode_number}',
                 fireside_url=item.link,
                 value=item.podcast_value,
-                episode_links=episode_links
+                episode_links=episode_links,
+                transcripts=item.podcast_transcripts
             )
 
     # 🩹 for twib feed not supporting podcast:person
