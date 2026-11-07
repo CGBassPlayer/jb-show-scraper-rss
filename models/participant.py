@@ -1,9 +1,11 @@
 from typing import Literal, Optional
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, ConfigDict, HttpUrl
 
 ParticipantType = Literal["host", "guest"]
 
 class Participant(BaseModel):
+    # Existing people files carry hand-maintained keys (is_hidden, active, mastodon) that must survive a re-save
+    model_config = ConfigDict(extra='allow')
 
     type: ParticipantType
     username: str  # Unique ID
